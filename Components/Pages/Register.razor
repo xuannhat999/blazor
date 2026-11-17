@@ -1,0 +1,66 @@
+@page "/register"
+@using Microsoft.AspNetCore.Components
+
+<PageTitle>Đăng kí</PageTitle>
+
+<div class="container py-5">
+    <div class="col-12 col-md-6 col-lg-4 mx-auto">
+        <div class="card">
+            <div class="card-body p-4">
+                <h1 class="fs-4 fw-bold mb-4 text-center">Đăng kí</h1>
+
+                @if (Error == "missing")
+                {
+                    <div class="alert alert-danger" role="alert">
+                        Vui lòng nhập đầy đủ thông tin.
+                    </div>
+                }
+                else if (Error == "email")
+                {
+                    <div class="alert alert-danger" role="alert">
+                        Email đã được sử dụng.
+                    </div>
+                }
+
+                <form method="post" action="/auth/register" class="d-flex flex-column gap-3">
+                    <div>
+                        <label class="form-label" for="name">Họ tên</label>
+                        <input type="text" id="name" name="name" class="form-control" required />
+                    </div>
+
+                    <div>
+                        <label class="form-label" for="email">Email</label>
+                        <input type="email" id="email" name="email" class="form-control" required />
+                    </div>
+
+                    <div>
+                        <label class="form-label" for="password">Mật khẩu</label>
+                        <input type="password" id="password" name="password" class="form-control" required />
+                    </div>
+
+                    <div>
+                        <label class="form-label" for="address">Địa chỉ</label>
+                        <input type="text" id="address" name="address" class="form-control" required />
+                    </div>
+
+                    <div>
+                        <label class="form-label" for="payMethod">Phương thức thanh toán</label>
+                        <select id="payMethod" name="payMethod" class="form-select">
+                            <option value="cash" selected>Tiền mặt</option>
+                            <option value="online">Trực tuyến</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Đăng kí</button>
+                </form>
+
+                <a class="btn btn-outline-secondary w-100 mt-3" href="/login">Đăng nhập</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? Error { get; set; }
+}

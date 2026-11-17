@@ -1,0 +1,113 @@
+@page "/cart"
+@using System.Security.Claims
+@using blazor_app.Interfaces
+@using blazor_app.Models
+@using blazor_app.Utils
+@inject ICartService CartService
+@inject IHttpContextAccessor HttpContextAccessor
+
+<PageTitle>Giỏ hàng</PageTitle>
+
+<div class="container py-4">
+  @if (!IsAuthenticated)
+  {
+    <div class="d-flex flex-column align-items-center justify-content-center gap-3 py-5 text-center">
+      <i class="fa-solid fa-cart-shopping display-1 text-secondary opacity-50" aria-hidden="true"></i>
+      <p class="mb-0 text-secondary">Bạn cần đăng nhập để xem giỏ hàng.</p>
+      <a class="btn btn-primary" href="/login">Đăng nhập</a>
+    </div>
+  }
+  else if (Items.Count == 0)
+  {
+    <div class="d-flex flex-column align-items-center justify-content-center gap-3 py-5 text-center">
+      <i class="fa-solid fa-cart-shopping display-1 text-secondary opacity-50" aria-hidden="true"></i>
+      <p class="mb-0">Giỏ hàng của bạn đang trống.</p>
+      <a class="btn btn-primary" href="/">Tiếp tục mua sắm</a>
+    </div>
+  }
+  else
+  {
+    <div class="d-flex align-items-baseline justify-content-between gap-3 flex-wrap mb-3">
+      <h1 class="fs-3 fw-bold mb-0">Giỏ hàng</h1>
+      <p class="small text-secondary mb-0">@Items.Count sản phẩm trong giỏ</p>
+    </div>
+
+    <form method="get" action="/payment">
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr class="small text-secondary">
+              <th scope="col" class="fw-semibold">
+                <input class="form-check-input m-0" type="checkbox" data-cart-select-all
+                       aria-label="Chọn tất cả sản phẩm" />
+              </th>
+              <th scope="col" class="fw-semibold">Sản phẩm</th>
+              <th scope="col" class="fw-semibold text-end text-nowrap">Giá</th>
+              <th scope="col" class="fw-semibold text-center">Size</th>
+              <th scope="col" class="fw-semibold text-end text-nowrap">Số lượng</th>
+              <th scope="col" class="fw-semibold text-end text-nowrap">Thành tiền</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach (var item in Items)
+            {
+              <tr>
+                <td>
+                  <input class="form-check-input m-0" type="checkbox" name="ids" value="@item.Id"
+                         aria-label="Chọn @item.Product.Name" />
+                </td>
+                <td>
+                  <div class="d-flex align-items-center gap-3">
+                    @if (ImageUrlHelper.ForFirst(item.Product.Images) is string imageUrl)
+                    {
+                      <img class="rounded object-fit-cover bg-body-secondary flex-shrink-0" src="@imageUrl"
+                           alt="@item.Product.Name" loading="lazy" width="72" height="72" />
+                    }
+                    <div>
+                      <a class="fw-semibold text-body text-decoration-none"
+                         href="/products/@item.ProductId">@item.Product.Name</a>
+                      <p class="small text-secondary mb-0">@item.Product.Brand.Label - @item.Product.Team.Label</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="text-end text-nowrap">@PriceFormatter.Format(item.Product.Price)</td>
+                <td class="text-center"><span class="badge text-bg-light border">@item.Size</span></td>
+                <td class="text-end text-nowrap">@item.Quantity</td>
+                <td class="text-end text-nowrap fw-bold">@PriceFormatter.Format(item.Product.Price * item.Quantity)</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-end justify-content-end gap-3 mt-3">
+        <div class="border rounded p-3 d-flex flex-column align-items-end gap-1" style="min-width: 16rem;">
+          <span class="small text-secondary">Tổng cộng</span>
+          <span class="fs-5 fw-bold">@PriceFormatter.Format(Total)</span>
+        </div>
+        <button class="btn btn-primary px-4" type="submit">Thanh toán</button>
+      </div>
+    </form>
+  }
+</div>
+
+@code {
+  private IReadOnlyList<CartItem> Items { get; set; } = Array.Empty<CartItem>();
+
+  private ClaimsPrincipal? User => HttpContextAccessor.HttpContext?.User;
+
+  private bool IsAuthenticated => User?.Identity?.IsAuthenticated == true;
+
+  private int? UserId =>
+      int.TryParse(User?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : null;
+
+  private decimal Total => Items.Sum(item => item.Product.Price * item.Quantity);
+
+  protected override async Task OnInitializedAsync()
+  {
+    if (UserId is int userId)
+    {
+      Items = await CartService.GetByUserIdAsync(userId);
+    }
+  }
+}

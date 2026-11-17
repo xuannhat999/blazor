@@ -1,0 +1,100 @@
+﻿@page "/"
+@using blazor_app.Interfaces
+@using blazor_app.Models
+@using blazor_app.Utils
+@inject IProductService ProductService
+
+<PageTitle>SportPlus</PageTitle>
+
+<img src="/banners/banner.webp" class="w-100 d-block" alt="Bộ sưu tập áo bóng đá SportPlus" />
+
+<section class="pt-4">
+    <div class="d-flex align-items-baseline justify-content-between gap-3 px-3 px-lg-4">
+        <h2 class="fs-4 fw-bold mb-0">Đội tuyển quốc gia</h2>
+        <a class="small link-dark link-underline-opacity-0 link-underline-opacity-100-hover text-nowrap"
+           href="/products?category=international">Xem tất cả</a>
+    </div>
+
+    @if (InternationalProducts.Count == 0)
+    {
+        <p class="text-secondary px-3 px-lg-4 mt-2 mb-0">Chưa có sản phẩm nào.</p>
+    }
+    else
+    {
+        <div class="d-flex gap-3 overflow-auto px-3 px-lg-4 pt-3 pb-3">
+            @foreach (var product in InternationalProducts)
+            {
+                <a class="card flex-shrink-0 border-0 bg-transparent text-body text-decoration-none product-rail-card"
+                   href="/products/@product.Id">
+                    <div class="ratio ratio-1x1 bg-body-secondary">
+                        @if (ImageUrlHelper.ForFirst(product.Images) is string imageUrl)
+                        {
+                            <img class="object-fit-cover" src="@imageUrl" alt="@product.Name" loading="lazy" />
+                        }
+                    </div>
+                    <div class="card-body p-2 d-flex flex-column gap-1">
+                        <h3 class="card-title fs-6 fw-normal lh-sm mb-0 text-truncate">@product.Name</h3>
+                        <div class="d-flex align-items-baseline gap-2">
+                            @if (product.OldPrice is decimal oldPrice && oldPrice > product.Price)
+                            {
+                                <span class="small text-secondary text-decoration-line-through">@PriceFormatter.Format(oldPrice)</span>
+                            }
+                            <span class="fw-bold">@PriceFormatter.Format(product.Price)</span>
+                        </div>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+</section>
+
+<section class="pt-4">
+    <div class="d-flex align-items-baseline justify-content-between gap-3 px-3 px-lg-4">
+        <h2 class="fs-4 fw-bold mb-0">Câu lạc bộ</h2>
+        <a class="small link-dark link-underline-opacity-0 link-underline-opacity-100-hover text-nowrap"
+           href="/products?category=club">Xem tất cả</a>
+    </div>
+
+    @if (ClubProducts.Count == 0)
+    {
+        <p class="text-secondary px-3 px-lg-4 mt-2 mb-0">Chưa có sản phẩm nào.</p>
+    }
+    else
+    {
+        <div class="d-flex gap-3 overflow-auto px-3 px-lg-4 pt-3 pb-3">
+            @foreach (var product in ClubProducts)
+            {
+                <a class="card flex-shrink-0 border-0 bg-transparent text-body text-decoration-none product-rail-card"
+                   href="/products/@product.Id">
+                    <div class="ratio ratio-1x1 bg-body-secondary">
+                        @if (ImageUrlHelper.ForFirst(product.Images) is string imageUrl)
+                        {
+                            <img class="object-fit-cover" src="@imageUrl" alt="@product.Name" loading="lazy" />
+                        }
+                    </div>
+                    <div class="card-body p-2 d-flex flex-column gap-1">
+                        <h3 class="card-title fs-6 fw-normal lh-sm mb-0 text-truncate">@product.Name</h3>
+                        <div class="d-flex align-items-baseline gap-2">
+                            @if (product.OldPrice is decimal oldPrice && oldPrice > product.Price)
+                            {
+                                <span class="small text-secondary text-decoration-line-through">@PriceFormatter.Format(oldPrice)</span>
+                            }
+                            <span class="fw-bold">@PriceFormatter.Format(product.Price)</span>
+                        </div>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+</section>
+
+@code {
+    private IReadOnlyList<Product> InternationalProducts { get; set; } = Array.Empty<Product>();
+    private IReadOnlyList<Product> ClubProducts { get; set; } = Array.Empty<Product>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        InternationalProducts = await ProductService.GetByCategoryAsync("international", 12);
+        ClubProducts = await ProductService.GetByCategoryAsync("club", 12);
+    }
+}

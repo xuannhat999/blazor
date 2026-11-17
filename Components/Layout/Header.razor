@@ -1,0 +1,71 @@
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
+@inject IHttpContextAccessor HttpContextAccessor
+
+<header class="sticky-top bg-body border-bottom">
+    <div class="container-fluid px-3 px-lg-4">
+        <div class="row align-items-center g-2 py-2">
+            <div class="col-auto order-1">
+                <a class="navbar-brand fw-bold fs-4 mb-0" href="/">SportPlus</a>
+            </div>
+
+            <div class="col-12 col-md-6 order-3 order-md-2">
+                <form class="d-flex" action="/products" method="get" role="search">
+                    <div class="input-group">
+                        <span class="input-group-text bg-body">
+                            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                        </span>
+                        <input class="form-control" type="search" name="q" placeholder="Tìm sản phẩm"
+                               aria-label="Tìm kiếm sản phẩm" />
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-auto order-2 order-md-3 ms-auto">
+                <div class="d-flex align-items-center gap-1">
+                    <a class="btn btn-link text-body p-2" href="/cart" aria-label="Giỏ hàng">
+                        <i class="fa-solid fa-cart-shopping fs-5" aria-hidden="true"></i>
+                    </a>
+                    <div class="dropdown">
+                        <button type="button" class="btn btn-link text-body p-2 dropdown-toggle"
+                                data-bs-toggle="dropdown" aria-expanded="false" aria-label="Tài khoản">
+                            <i class="fa-solid fa-user fs-5" aria-hidden="true"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            @if (IsAuthenticated)
+                            {
+                                <li class="px-3 py-2">
+                                    <div class="fw-semibold">@DisplayName</div>
+                                    <div class="small text-secondary">@Email</div>
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item" href="/account">Tài khoản</a></li>
+                                <li><a class="dropdown-item" href="/orders">Đơn hàng</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <form method="post" action="/auth/logout">
+                                        <button type="submit" class="dropdown-item">Đăng xuất</button>
+                                    </form>
+                                </li>
+                            }
+                            else
+                            {
+                                <li><a class="dropdown-item" href="/login">Đăng nhập</a></li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+@code {
+    private ClaimsPrincipal? CurrentUser => HttpContextAccessor.HttpContext?.User;
+
+    private bool IsAuthenticated => CurrentUser?.Identity?.IsAuthenticated == true;
+
+    private string? DisplayName => CurrentUser?.Identity?.Name;
+
+    private string? Email => CurrentUser?.FindFirst(ClaimTypes.Email)?.Value;
+}

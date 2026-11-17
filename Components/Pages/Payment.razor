@@ -1,0 +1,170 @@
+@page "/payment"
+@using System.Security.Claims
+@using blazor_app.Interfaces
+@using blazor_app.Models
+@using blazor_app.Utils
+@inject ICartService CartService
+@inject IUserService UserService
+@inject IHttpContextAccessor HttpContextAccessor
+
+<PageTitle>Thanh toán</PageTitle>
+
+<div class="container py-4">
+    @if (!IsAuthenticated)
+    {
+        <div class="d-flex flex-column align-items-center justify-content-center gap-3 py-5 text-center">
+            <i class="fa-solid fa-lock display-1 text-secondary opacity-50" aria-hidden="true"></i>
+            <p class="mb-0 text-secondary">Bạn cần đăng nhập để thanh toán.</p>
+            <a class="btn btn-primary" href="/login">Đăng nhập</a>
+        </div>
+    }
+    else if (Done == 1)
+    {
+        <h1 class="fs-3 fw-bold mb-3">Thanh toán</h1>
+
+        <div class="alert alert-success d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-0" role="alert">
+            <span>Đặt hàng thành công.</span>
+            <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-primary" href="/orders">Xem đơn hàng</a>
+                <a class="btn btn-outline-secondary" href="/">Tiếp tục mua sắm</a>
+            </div>
+        </div>
+    }
+    else if (SelectedItems.Count == 0)
+    {
+        <h1 class="fs-3 fw-bold mb-3">Thanh toán</h1>
+
+        <div class="alert alert-warning d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-0" role="alert">
+            <span>Chưa chọn sản phẩm nào để thanh toán.</span>
+            <a class="btn btn-outline-secondary" href="/cart">Quay lại giỏ hàng</a>
+        </div>
+    }
+    else
+    {
+        <h1 class="fs-3 fw-bold mb-3">Thanh toán</h1>
+
+        <div class="row g-4">
+            <div class="col-12 col-lg-5">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="fs-5 fw-bold mb-3">Thông tin đặt hàng</h2>
+
+                        <form method="post" action="/orders/create" class="d-flex flex-column gap-3">
+                            @foreach (var item in SelectedItems)
+                            {
+                                <input type="hidden" name="ids" value="@item.Id" />
+                            }
+
+                            @if (Error == "address")
+                            {
+                                <div class="alert alert-danger mb-0" role="alert">Vui lòng nhập địa chỉ.</div>
+                            }
+
+                            <div>
+                                <label class="form-label" for="address">Địa chỉ</label>
+                                <input id="address" name="address" class="form-control" required value="@Address" />
+                            </div>
+
+                            <div>
+                                <label class="form-label" for="payMethod">Phương thức thanh toán</label>
+                                <select id="payMethod" name="payMethod" class="form-select">
+                                    <option value="online" selected="@IsOnline">Thanh toán trực tuyến</option>
+                                    <option value="cash" selected="@(!IsOnline)">Thanh toán khi nhận hàng</option>
+                                </select>
+                            </div>
+
+                            <button class="btn btn-primary w-100" type="submit">Đặt hàng</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-7">
+                <div class="card">
+                    <div class="card-header bg-transparent fw-semibold">Sản phẩm đã chọn</div>
+
+                    <ul class="list-group list-group-flush">
+                        @foreach (var item in SelectedItems)
+                        {
+                            <li class="list-group-item d-flex align-items-center gap-3 py-3">
+                                @if (ImageUrlHelper.ForFirst(item.Product.Images) is string imageUrl)
+                                {
+                                    <img class="rounded object-fit-cover bg-body-secondary flex-shrink-0"
+                                         src="@imageUrl" alt="@item.Product.Name" loading="lazy"
+                                         width="72" height="72" />
+                                }
+                                <div class="flex-grow-1">
+                                    <a class="fw-semibold text-body text-decoration-none" href="/products/@item.ProductId">@item.Product.Name</a>
+                                    <div class="d-flex flex-wrap align-items-center gap-2 small text-secondary mt-1">
+                                        <span class="badge text-bg-light border">@item.Size</span>
+                                        <span>Số lượng: @item.Quantity</span>
+                                    </div>
+                                </div>
+                                <div class="text-end fw-bold text-nowrap">@PriceFormatter.Format(item.Product.Price * item.Quantity)</div>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="card-footer bg-transparent d-flex justify-content-between align-items-baseline">
+                        <span class="small text-secondary">Tổng cộng</span>
+                        <span class="fs-5 fw-bold">@PriceFormatter.Format(Total)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private User? CurrentUser { get; set; }
+
+    private List<CartItem> SelectedItems { get; set; } = new();
+
+    private string Address { get; set; } = string.Empty;
+
+    private ClaimsPrincipal? Principal => HttpContextAccessor.HttpContext?.User;
+
+    private bool IsAuthenticated => Principal?.Identity?.IsAuthenticated == true;
+
+    private int? UserId =>
+        int.TryParse(Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : null;
+
+    private bool IsOnline => CurrentUser?.PayMethod == PayMethod.Online;
+
+    private decimal Total => SelectedItems.Sum(item => item.Product.Price * item.Quantity);
+
+    [SupplyParameterFromQuery(Name = "ids")]
+    public int[]? Ids { get; set; }
+
+    [SupplyParameterFromQuery(Name = "done")]
+    public int? Done { get; set; }
+
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? Error { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!IsAuthenticated || Done == 1 || UserId is not int userId)
+        {
+            return;
+        }
+
+        var cartItems = await CartService.GetByUserIdAsync(userId);
+
+        if (Ids is null || Ids.Length == 0)
+        {
+            SelectedItems = new List<CartItem>();
+        }
+        else
+        {
+            var selectedIds = Ids.ToHashSet();
+            SelectedItems = cartItems.Where(item => selectedIds.Contains(item.Id)).ToList();
+        }
+
+        CurrentUser = await UserService.GetByIdAsync(userId);
+        if (CurrentUser is not null)
+        {
+            Address = CurrentUser.Address ?? string.Empty;
+        }
+    }
+}

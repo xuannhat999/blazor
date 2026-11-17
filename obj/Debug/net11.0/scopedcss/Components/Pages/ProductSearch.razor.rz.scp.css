@@ -1,0 +1,16 @@
+details > summary[b-zqizsqauqp] {
+    cursor: pointer;
+    list-style: none;
+}
+
+details > summary[b-zqizsqauqp]::-webkit-details-marker {
+    display: none;
+}
+
+.filter-chevron[b-zqizsqauqp] {
+    transition: transform 0.15s ease-in-out;
+}
+
+details[open] .filter-chevron[b-zqizsqauqp] {
+    transform: rotate(180deg);
+}

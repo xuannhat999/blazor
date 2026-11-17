@@ -1,0 +1,330 @@
+@page "/products"
+@using System.Globalization
+@using blazor_app.Interfaces
+@using blazor_app.Models
+@using blazor_app.Utils
+@inject IProductService ProductService
+
+<PageTitle>Tìm kiếm sản phẩm</PageTitle>
+
+<div class="container-fluid px-3 px-lg-4 py-4">
+    <h1 class="visually-hidden">Tìm kiếm sản phẩm</h1>
+
+    <div class="row g-4">
+        <aside class="col-12 col-lg-3" aria-label="Bộ lọc sản phẩm">
+            <form method="get" action="/products" class="d-flex flex-column gap-3 pe-lg-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-body">
+                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    </span>
+                    <input class="form-control" type="search" name="q" value="@Q"
+                           placeholder="Tìm sản phẩm" aria-label="Tìm kiếm sản phẩm" />
+                </div>
+
+                <div>
+                    <label class="form-label small fw-semibold mb-1" for="filter-sort">Sắp xếp</label>
+                    <select class="form-select" id="filter-sort" name="sort">
+                        <option value="az" selected="@(CurrentSort == "az")">A - Z</option>
+                        <option value="za" selected="@(CurrentSort == "za")">Z - A</option>
+                        <option value="price_asc" selected="@(CurrentSort == "price_asc")">Giá: thấp đến cao</option>
+                        <option value="price_desc" selected="@(CurrentSort == "price_desc")">Giá: cao đến thấp</option>
+                    </select>
+                </div>
+
+                @FilterGroup("Hãng", "brand", Brand,
+                    Map(Options?.Brands, brand => brand.Code, brand => brand.Label))
+                @FilterGroup("Thể loại", "category", Category,
+                    Map(Options?.Categories, category => category.Code, category => category.Label))
+                @FilterGroup("Loại áo đấu", "kit_type", KitType,
+                    Map(Options?.KitTypes, kitType => kitType.Code, kitType => kitType.Label))
+                @FilterGroup("Giải đấu", "league", League,
+                    Map(Options?.Leagues, league => league.Code, league => league.Label))
+                @FilterGroup("Đội", "team", Team,
+                    Map(Options?.Teams, team => team.Code, team => team.Label))
+                @FilterGroup("Mùa giải", "season", Season,
+                    Map(Options?.Seasons, season => season.Name, season => season.Name))
+
+                <div class="d-flex flex-column gap-2 pt-1">
+                    <button class="btn btn-primary w-100" type="submit">Áp dụng</button>
+                    <a class="btn btn-outline-secondary w-100" href="/products">Xóa lọc</a>
+                </div>
+            </form>
+        </aside>
+
+        <section class="col-12 col-lg-9">
+            <p class="small text-secondary mb-2">@Result.Total sản phẩm</p>
+
+            @if (Result.Items.Count == 0)
+            {
+                <p class="text-secondary text-center py-5 mb-0">Chưa có sản phẩm nào.</p>
+            }
+            else
+            {
+                <div class="row row-cols-2 row-cols-md-3 row-cols-xl-5 g-3">
+                    @foreach (var product in Result.Items)
+                    {
+                        <div class="col">
+                            <a class="card h-100 border-0 bg-transparent text-body text-decoration-none"
+                               href="/products/@product.Id">
+                                <div class="ratio ratio-1x1 bg-body-secondary rounded overflow-hidden">
+                                    @if (ImageUrlHelper.ForFirst(product.Images) is string imageUrl)
+                                    {
+                                        <img class="object-fit-cover" src="@imageUrl" alt="@product.Name" loading="lazy" />
+                                    }
+                                </div>
+                                <div class="card-body px-0 py-2 d-flex flex-column gap-1">
+                                    <p class="card-title fs-6 fw-normal lh-sm mb-0 text-truncate">@product.Name</p>
+                                    <div class="d-flex align-items-baseline gap-2">
+                                        @if (product.OldPrice is decimal oldPrice && oldPrice > product.Price)
+                                        {
+                                            <span class="small text-secondary text-decoration-line-through">@PriceFormatter.Format(oldPrice)</span>
+                                        }
+                                        <span class="fw-bold">@PriceFormatter.Format(product.Price)</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (Result.TotalPages > 1)
+            {
+                <nav aria-label="Phân trang kết quả" class="mt-4">
+                    <ul class="pagination justify-content-center flex-wrap mb-0">
+                        <li class="page-item @(Result.Page <= 1 ? "disabled" : null)">
+                            @if (Result.Page <= 1)
+                            {
+                                <span class="page-link" aria-label="Trang trước">‹</span>
+                            }
+                            else
+                            {
+                                <a class="page-link" href="@BuildPageUrl(Result.Page - 1)" aria-label="Trang trước">‹</a>
+                            }
+                        </li>
+
+                        @foreach (var pageItem in PageItems)
+                        {
+                            if (pageItem is not int pageNumber)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">…</span>
+                                </li>
+                            }
+                            else if (pageNumber == Result.Page)
+                            {
+                                <li class="page-item active" aria-current="page">
+                                    <a class="page-link" href="@BuildPageUrl(pageNumber)">@pageNumber</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@BuildPageUrl(pageNumber)">@pageNumber</a>
+                                </li>
+                            }
+                        }
+
+                        <li class="page-item @(Result.Page >= Result.TotalPages ? "disabled" : null)">
+                            @if (Result.Page >= Result.TotalPages)
+                            {
+                                <span class="page-link" aria-label="Trang sau">›</span>
+                            }
+                            else
+                            {
+                                <a class="page-link" href="@BuildPageUrl(Result.Page + 1)" aria-label="Trang sau">›</a>
+                            }
+                        </li>
+                    </ul>
+                </nav>
+            }
+        </section>
+    </div>
+</div>
+
+@code {
+    private const int PageSize = 25;
+    private const int MaxPageButtons = 7;
+
+    private static readonly string[] SortValues = ["az", "za", "price_asc", "price_desc"];
+
+    [SupplyParameterFromQuery(Name = "q")] public string? Q { get; set; }
+    [SupplyParameterFromQuery(Name = "sort")] public string? Sort { get; set; }
+    [SupplyParameterFromQuery(Name = "page")] public int? Page { get; set; }
+    [SupplyParameterFromQuery(Name = "brand")] public string[]? Brand { get; set; }
+    [SupplyParameterFromQuery(Name = "category")] public string[]? Category { get; set; }
+    [SupplyParameterFromQuery(Name = "kit_type")] public string[]? KitType { get; set; }
+    [SupplyParameterFromQuery(Name = "league")] public string[]? League { get; set; }
+    [SupplyParameterFromQuery(Name = "team")] public string[]? Team { get; set; }
+    [SupplyParameterFromQuery(Name = "season")] public string[]? Season { get; set; }
+
+    private ProductSearchResult Result { get; set; } = new();
+    private ProductFilterOptions Options { get; set; } = new();
+
+    private string CurrentSort => SortValues.Contains(Sort) ? Sort! : "az";
+
+    private IReadOnlyList<int?> PageItems
+    {
+        get
+        {
+            var totalPages = Result.TotalPages;
+            if (totalPages <= 1)
+            {
+                return Array.Empty<int?>();
+            }
+
+            var pages = new List<int?>();
+
+            if (totalPages <= MaxPageButtons)
+            {
+                for (var page = 1; page <= totalPages; page++)
+                {
+                    pages.Add(page);
+                }
+
+                return pages;
+            }
+
+            var half = MaxPageButtons / 2;
+            var start = Math.Max(1, Result.Page - half);
+            var end = Math.Min(totalPages, start + MaxPageButtons - 1);
+            start = Math.Max(1, end - MaxPageButtons + 1);
+
+            if (start > 1)
+            {
+                pages.Add(1);
+                if (start > 2)
+                {
+                    pages.Add(null);
+                }
+            }
+
+            for (var page = start; page <= end; page++)
+            {
+                pages.Add(page);
+            }
+
+            if (end < totalPages)
+            {
+                if (end < totalPages - 1)
+                {
+                    pages.Add(null);
+                }
+
+                pages.Add(totalPages);
+            }
+
+            return pages;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var searchTask = ProductService.SearchAsync(BuildCriteria());
+        var optionsTask = ProductService.GetFilterOptionsAsync();
+
+        await Task.WhenAll(searchTask, optionsTask);
+
+        Result = await searchTask;
+        Options = await optionsTask;
+    }
+
+    private ProductSearchCriteria BuildCriteria() => new()
+    {
+        Keyword = string.IsNullOrWhiteSpace(Q) ? null : Q.Trim(),
+        Sort = CurrentSort,
+        Page = Page is > 0 ? Page.Value : 1,
+        PageSize = PageSize,
+        Brands = Clean(Brand),
+        Categories = Clean(Category),
+        KitTypes = Clean(KitType),
+        Leagues = Clean(League),
+        Teams = Clean(Team),
+        Seasons = Clean(Season)
+    };
+
+    private string BuildPageUrl(int page)
+    {
+        var query = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(Q))
+        {
+            query.Add("q=" + Uri.EscapeDataString(Q));
+        }
+
+        query.Add("sort=" + Uri.EscapeDataString(CurrentSort));
+
+        if (page > 1)
+        {
+            query.Add("page=" + page.ToString(CultureInfo.InvariantCulture));
+        }
+
+        AppendValues(query, "brand", Brand);
+        AppendValues(query, "category", Category);
+        AppendValues(query, "kit_type", KitType);
+        AppendValues(query, "league", League);
+        AppendValues(query, "team", Team);
+        AppendValues(query, "season", Season);
+
+        return "/products?" + string.Join("&", query);
+    }
+
+    private RenderFragment FilterGroup(
+        string title,
+        string name,
+        string[]? selected,
+        IEnumerable<(string Value, string Label)> options) => @<details class="border rounded px-2" open="@(SelectedCount(selected) > 0)">
+        <summary class="d-flex align-items-center justify-content-between gap-2 py-2 small fw-semibold">
+            <span class="d-flex align-items-center gap-2">
+                @title
+                @{
+                    var count = SelectedCount(selected);
+                }
+                @if (count > 0)
+                {
+                    <span class="badge text-bg-primary">@count</span>
+                }
+            </span>
+            <i class="fa-solid fa-chevron-down filter-chevron opacity-75" aria-hidden="true"></i>
+        </summary>
+        <div class="d-flex flex-column gap-1 overflow-auto pb-2" style="max-height: 220px">
+            @foreach (var option in options)
+            {
+                <label class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" name="@name" value="@option.Value"
+                           checked="@(selected?.Contains(option.Value) == true)" />
+                    <span class="form-check-label small">@option.Label</span>
+                </label>
+            }
+        </div>
+    </details>;
+
+    private static IEnumerable<(string Value, string Label)> Map<T>(
+        IReadOnlyList<T>? items,
+        Func<T, string> valueSelector,
+        Func<T, string> labelSelector) =>
+        items is null
+            ? Enumerable.Empty<(string Value, string Label)>()
+            : items.Select(item => (valueSelector(item), labelSelector(item)));
+
+    private static int SelectedCount(string[]? selected) =>
+        selected is null ? 0 : selected.Where(value => !string.IsNullOrWhiteSpace(value)).Distinct().Count();
+
+    private static List<string> Clean(string[]? values) =>
+        values is null
+            ? new List<string>()
+            : values.Where(value => !string.IsNullOrWhiteSpace(value)).Distinct().ToList();
+
+    private static void AppendValues(List<string> query, string name, string[]? values)
+    {
+        if (values is null)
+        {
+            return;
+        }
+
+        foreach (var value in values.Where(value => !string.IsNullOrWhiteSpace(value)).Distinct())
+        {
+            query.Add(name + "=" + Uri.EscapeDataString(value));
+        }
+    }
+}

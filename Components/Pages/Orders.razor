@@ -1,0 +1,93 @@
+@page "/orders"
+@using System.Security.Claims
+@using blazor_app.Interfaces
+@using blazor_app.Models
+@using blazor_app.Utils
+@inject IOrderService OrderService
+@inject IHttpContextAccessor HttpContextAccessor
+
+<PageTitle>Lịch sử mua hàng</PageTitle>
+
+<div class="container py-4">
+  @if (!IsAuthenticated)
+  {
+    <div class="d-flex flex-column align-items-center justify-content-center gap-3 py-5 text-center">
+      <i class="fa-solid fa-receipt display-1 text-secondary opacity-50" aria-hidden="true"></i>
+      <p class="mb-0 text-secondary">Bạn cần đăng nhập để xem lịch sử mua hàng.</p>
+      <a class="btn btn-primary" href="/login">Đăng nhập</a>
+    </div>
+  }
+  else if (OrderList.Count == 0)
+  {
+    <div class="d-flex flex-column align-items-center justify-content-center gap-3 py-5 text-center">
+      <i class="fa-solid fa-receipt display-1 text-secondary opacity-50" aria-hidden="true"></i>
+      <p class="mb-0">Bạn chưa có đơn hàng nào.</p>
+      <a class="btn btn-primary" href="/">Tiếp tục mua sắm</a>
+    </div>
+  }
+  else
+  {
+    <div class="mx-auto" style="max-width: 880px;">
+      <div class="d-flex align-items-baseline justify-content-between gap-3 flex-wrap mb-3">
+        <h1 class="fs-3 fw-bold mb-0">Lịch sử mua hàng</h1>
+        <p class="small text-secondary mb-0">@OrderList.Count đơn hàng</p>
+      </div>
+
+      <div class="d-flex flex-column gap-3">
+        @foreach (var order in OrderList)
+        {
+          <article class="card">
+            <div class="card-header bg-transparent d-flex flex-wrap align-items-center justify-content-between gap-2">
+              <h2 class="fs-6 fw-bold mb-0">Đơn hàng #@order.Id</h2>
+              <span class="badge @OrderDisplay.StatusClass(order.Status)">@OrderDisplay.StatusLabel(order.Status)</span>
+            </div>
+
+            <div class="card-body">
+              <dl class="row gy-2 mb-0 small">
+                <dt class="col-12 col-sm-4 col-lg-3 fw-normal text-secondary mb-0">Ngày đặt</dt>
+                <dd class="col-12 col-sm-8 col-lg-9 mb-0">@DateFormatter.Format(order.CreatedAt)</dd>
+
+                <dt class="col-12 col-sm-4 col-lg-3 fw-normal text-secondary mb-0">Tổng tiền</dt>
+                <dd class="col-12 col-sm-8 col-lg-9 mb-0 fw-bold">@PriceFormatter.Format(order.Total)</dd>
+
+                <dt class="col-12 col-sm-4 col-lg-3 fw-normal text-secondary mb-0">Địa chỉ</dt>
+                <dd class="col-12 col-sm-8 col-lg-9 mb-0 text-break">@order.Address</dd>
+
+                <dt class="col-12 col-sm-4 col-lg-3 fw-normal text-secondary mb-0">Phương thức thanh toán</dt>
+                <dd class="col-12 col-sm-8 col-lg-9 mb-0">@OrderDisplay.PayMethodLabel(order.PayMethod)</dd>
+              </dl>
+            </div>
+
+            <div class="card-footer bg-transparent d-flex justify-content-end">
+              <a class="small fw-semibold text-decoration-none d-inline-flex align-items-center gap-2"
+                 href="/orders/@order.Id">
+                <span>Xem chi tiết đơn hàng</span>
+                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+              </a>
+            </div>
+          </article>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+@code {
+  private IReadOnlyList<Order> OrderList { get; set; } = Array.Empty<Order>();
+
+  private ClaimsPrincipal? Principal => HttpContextAccessor.HttpContext?.User;
+
+  private bool IsAuthenticated => Principal?.Identity?.IsAuthenticated == true;
+
+  private int? UserId =>
+      int.TryParse(Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : null;
+
+  protected override async Task OnInitializedAsync()
+  {
+    if (UserId is int userId)
+    {
+      OrderList = await OrderService.GetByUserIdAsync(userId);
+    }
+  }
+
+}

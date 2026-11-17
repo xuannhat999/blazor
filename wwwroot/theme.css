@@ -1,0 +1,483 @@
+/* =========================================================================
+   SportPlus — monochrome storefront theme
+   Loaded last, after Bootstrap, app.css and Blazor scoped styles, so it
+   wins without heavy !important use.
+
+   Palette
+   ink        #1a1a1a   primary surfaces, text, borders
+   ink-hover  #333333   hover/active surfaces
+   on-ink     #f5f5f5   text on ink surfaces
+   paper      #f5f5f5   subtle fills (alerts, footer, badges)
+   paper-2    #e9ecef   neutral badge fills, image placeholders
+   muted      #5c5c5c   secondary text (6.6:1 on white)
+   soft       #6b6b6b   placeholders, hints (5.3:1 on white)
+   line       rgba(26, 26, 26, .15)  subtle borders
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   1. Root tokens + Bootstrap theme variables
+   ------------------------------------------------------------------------- */
+:root {
+    --ink: #1a1a1a;
+    --ink-hover: #333333;
+    --on-ink: #f5f5f5;
+    --paper: #f5f5f5;
+    --paper-2: #e9ecef;
+    --ink-muted: #5c5c5c;
+    --ink-soft: #6b6b6b;
+    --ink-disabled: #757575;
+    --line: rgba(26, 26, 26, 0.15);
+    --line-strong: rgba(26, 26, 26, 0.3);
+
+    color-scheme: light;
+
+    /* Brand and semantic colors collapse to ink. */
+    --bs-primary: var(--ink);
+    --bs-primary-rgb: 26, 26, 26;
+    --bs-secondary: var(--ink-muted);
+    --bs-secondary-rgb: 92, 92, 92;
+    --bs-success: var(--ink);
+    --bs-success-rgb: 26, 26, 26;
+    --bs-info: var(--ink);
+    --bs-info-rgb: 26, 26, 26;
+    --bs-warning: var(--ink);
+    --bs-warning-rgb: 26, 26, 26;
+    --bs-danger: var(--ink);
+    --bs-danger-rgb: 26, 26, 26;
+    --bs-light: var(--paper);
+    --bs-light-rgb: 245, 245, 245;
+    --bs-dark: var(--ink);
+    --bs-dark-rgb: 26, 26, 26;
+
+    /* Alert and emphasis triplets (Bootstrap 5.3 alert-* read these). */
+    --bs-primary-text-emphasis: var(--ink);
+    --bs-primary-bg-subtle: var(--paper);
+    --bs-primary-border-subtle: rgba(26, 26, 26, 0.2);
+    --bs-secondary-text-emphasis: var(--ink);
+    --bs-secondary-bg-subtle: var(--paper);
+    --bs-secondary-border-subtle: rgba(26, 26, 26, 0.2);
+    --bs-success-text-emphasis: var(--ink);
+    --bs-success-bg-subtle: var(--paper);
+    --bs-success-border-subtle: rgba(26, 26, 26, 0.2);
+    --bs-info-text-emphasis: var(--ink);
+    --bs-info-bg-subtle: var(--paper);
+    --bs-info-border-subtle: rgba(26, 26, 26, 0.2);
+    --bs-warning-text-emphasis: var(--ink);
+    --bs-warning-bg-subtle: var(--paper);
+    --bs-warning-border-subtle: rgba(26, 26, 26, 0.2);
+    --bs-danger-text-emphasis: var(--ink);
+    --bs-danger-bg-subtle: var(--paper);
+    --bs-danger-border-subtle: rgba(26, 26, 26, 0.2);
+    --bs-light-text-emphasis: var(--ink);
+    --bs-light-bg-subtle: var(--paper);
+    --bs-light-border-subtle: rgba(26, 26, 26, 0.2);
+    --bs-dark-text-emphasis: var(--ink);
+    --bs-dark-bg-subtle: var(--paper);
+    --bs-dark-border-subtle: rgba(26, 26, 26, 0.2);
+
+    /* Text and surfaces. */
+    --bs-body-color: var(--ink);
+    --bs-body-color-rgb: 26, 26, 26;
+    --bs-body-bg: #ffffff;
+    --bs-body-bg-rgb: 255, 255, 255;
+    --bs-emphasis-color: var(--ink);
+    --bs-emphasis-color-rgb: 26, 26, 26;
+    --bs-heading-color: var(--ink);
+    --bs-secondary-color: rgba(26, 26, 26, 0.65);
+    --bs-secondary-color-rgb: 26, 26, 26;
+    --bs-tertiary-color: rgba(26, 26, 26, 0.5);
+    --bs-tertiary-color-rgb: 26, 26, 26;
+    --bs-secondary-bg: var(--paper-2);
+    --bs-secondary-bg-rgb: 233, 236, 239;
+    --bs-tertiary-bg: var(--paper);
+    --bs-tertiary-bg-rgb: 245, 245, 245;
+
+    /* Links: ink, ink on hover, no purple visited state. */
+    --bs-link-color: var(--ink);
+    --bs-link-color-rgb: 26, 26, 26;
+    --bs-link-hover-color: var(--ink-hover);
+    --bs-link-hover-color-rgb: 51, 51, 51;
+    --bs-link-decoration: underline;
+
+    /* Borders, focus, code, highlight. */
+    --bs-border-color: var(--line);
+    --bs-border-color-translucent: rgba(26, 26, 26, 0.15);
+    --bs-focus-ring-color: rgba(26, 26, 26, 0.25);
+    --bs-code-color: var(--ink);
+    --bs-highlight-color: var(--ink);
+    --bs-highlight-bg: var(--paper);
+
+    /* Validation. */
+    --bs-form-valid-color: var(--ink);
+    --bs-form-valid-border-color: var(--ink);
+    --bs-form-invalid-color: var(--ink);
+    --bs-form-invalid-border-color: var(--ink);
+}
+
+/* -------------------------------------------------------------------------
+   2. Base, links, selection, focus
+   ------------------------------------------------------------------------- */
+body {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+}
+
+/* Content links: no underline at rest, ink underline on hover. Utility and
+   component links keep their own decoration rules. */
+:where(main, footer) a:where(:not(.btn, .card, .nav-link, .navbar-brand, .dropdown-item, .page-link)) {
+    text-decoration: none;
+}
+
+:where(main, footer) a:where(:not(.btn, .card, .nav-link, .navbar-brand, .dropdown-item, .page-link)):visited {
+    color: var(--ink);
+}
+
+:where(main, footer) a:where(:not(.btn, .card, .nav-link, .navbar-brand, .dropdown-item, .page-link)):hover {
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+}
+
+::selection {
+    background-color: rgba(26, 26, 26, 0.18);
+    color: var(--ink);
+}
+
+:where(a, button, input, select, textarea, summary):focus-visible {
+    outline: 2px solid var(--line-strong);
+    outline-offset: 2px;
+}
+
+/* -------------------------------------------------------------------------
+   3. Buttons
+   ------------------------------------------------------------------------- */
+.btn {
+    --bs-btn-focus-box-shadow: 0 0 0 0.25rem rgba(26, 26, 26, 0.25);
+}
+
+.btn-primary,
+.btn-dark {
+    --bs-btn-color: var(--on-ink);
+    --bs-btn-bg: var(--ink);
+    --bs-btn-border-color: var(--ink);
+    --bs-btn-hover-color: #ffffff;
+    --bs-btn-hover-bg: var(--ink-hover);
+    --bs-btn-hover-border-color: var(--ink-hover);
+    --bs-btn-focus-shadow-rgb: 26, 26, 26;
+    --bs-btn-active-color: #ffffff;
+    --bs-btn-active-bg: #262626;
+    --bs-btn-active-border-color: var(--ink-hover);
+    --bs-btn-disabled-color: #ffffff;
+    --bs-btn-disabled-bg: #9e9e9e;
+    --bs-btn-disabled-border-color: #9e9e9e;
+}
+
+.btn-outline-primary,
+.btn-outline-dark {
+    --bs-btn-color: var(--ink);
+    --bs-btn-border-color: var(--ink);
+    --bs-btn-hover-color: var(--on-ink);
+    --bs-btn-hover-bg: var(--ink);
+    --bs-btn-hover-border-color: var(--ink);
+    --bs-btn-focus-shadow-rgb: 26, 26, 26;
+    --bs-btn-active-color: var(--on-ink);
+    --bs-btn-active-bg: var(--ink-hover);
+    --bs-btn-active-border-color: var(--ink-hover);
+    --bs-btn-disabled-color: var(--ink-disabled);
+    --bs-btn-disabled-bg: transparent;
+    --bs-btn-disabled-border-color: var(--line-strong);
+}
+
+.btn-outline-secondary {
+    --bs-btn-color: var(--ink);
+    --bs-btn-border-color: var(--ink);
+    --bs-btn-hover-color: var(--on-ink);
+    --bs-btn-hover-bg: var(--ink);
+    --bs-btn-hover-border-color: var(--ink);
+    --bs-btn-focus-shadow-rgb: 26, 26, 26;
+    --bs-btn-active-color: var(--on-ink);
+    --bs-btn-active-bg: var(--ink-hover);
+    --bs-btn-active-border-color: var(--ink-hover);
+    --bs-btn-disabled-color: var(--ink-disabled);
+    --bs-btn-disabled-bg: transparent;
+    --bs-btn-disabled-border-color: var(--line-strong);
+}
+
+.btn-secondary {
+    --bs-btn-color: var(--on-ink);
+    --bs-btn-bg: var(--ink-muted);
+    --bs-btn-border-color: var(--ink-muted);
+    --bs-btn-hover-color: var(--on-ink);
+    --bs-btn-hover-bg: var(--ink-hover);
+    --bs-btn-hover-border-color: var(--ink-hover);
+    --bs-btn-focus-shadow-rgb: 26, 26, 26;
+    --bs-btn-active-color: var(--on-ink);
+    --bs-btn-active-bg: var(--ink);
+    --bs-btn-active-border-color: var(--ink);
+    --bs-btn-disabled-color: var(--on-ink);
+    --bs-btn-disabled-bg: #9e9e9e;
+    --bs-btn-disabled-border-color: #9e9e9e;
+}
+
+.btn-link {
+    --bs-btn-focus-shadow-rgb: 26, 26, 26;
+}
+
+/* Size chips: the checked radio label uses the ink active scheme. */
+.btn-check:checked + .btn {
+    --bs-btn-focus-shadow-rgb: 26, 26, 26;
+}
+
+/* -------------------------------------------------------------------------
+   4. Forms
+   ------------------------------------------------------------------------- */
+.form-control,
+.form-select {
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--ink);
+    box-shadow: 0 0 0 0.25rem rgba(26, 26, 26, 0.15);
+}
+
+.form-control::placeholder {
+    color: var(--ink-soft);
+    opacity: 1;
+}
+
+.form-control:disabled,
+.form-select:disabled {
+    background-color: var(--paper-2);
+    color: var(--ink-muted);
+}
+
+.input-group-text {
+    color: var(--bs-body-color);
+    border-color: var(--bs-border-color);
+}
+
+.form-check-input {
+    --bs-form-check-bg: var(--bs-body-bg);
+    border-color: var(--line-strong);
+}
+
+.form-check-input:focus {
+    border-color: var(--ink);
+    box-shadow: 0 0 0 0.25rem rgba(26, 26, 26, 0.15);
+}
+
+.form-check-input:checked,
+.form-check-input[type=checkbox]:indeterminate {
+    background-color: var(--ink);
+    border-color: var(--ink);
+}
+
+.form-check-input:disabled {
+    opacity: 0.45;
+}
+
+.form-label {
+    color: var(--bs-body-color);
+}
+
+.form-text {
+    color: var(--ink-soft);
+}
+
+.validation-message {
+    color: var(--ink);
+}
+
+.invalid {
+    outline: 1px solid var(--ink);
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid var(--ink);
+}
+
+/* -------------------------------------------------------------------------
+   5. Pagination
+   ------------------------------------------------------------------------- */
+.pagination {
+    --bs-pagination-color: var(--ink);
+    --bs-pagination-bg: var(--bs-body-bg);
+    --bs-pagination-border-color: var(--line);
+    --bs-pagination-hover-color: var(--ink);
+    --bs-pagination-hover-bg: var(--paper);
+    --bs-pagination-hover-border-color: var(--line-strong);
+    --bs-pagination-focus-color: var(--ink);
+    --bs-pagination-focus-bg: var(--paper);
+    --bs-pagination-focus-box-shadow: 0 0 0 0.25rem rgba(26, 26, 26, 0.15);
+    --bs-pagination-active-color: #ffffff;
+    --bs-pagination-active-bg: var(--ink);
+    --bs-pagination-active-border-color: var(--ink);
+    --bs-pagination-disabled-color: var(--ink-disabled);
+    --bs-pagination-disabled-bg: var(--bs-body-bg);
+    --bs-pagination-disabled-border-color: var(--line);
+}
+
+.page-link {
+    text-decoration: none;
+}
+
+/* -------------------------------------------------------------------------
+   6. Badges
+   ------------------------------------------------------------------------- */
+.text-bg-primary,
+.text-bg-secondary,
+.text-bg-success,
+.text-bg-dark {
+    color: #ffffff !important;
+    background-color: var(--ink) !important;
+}
+
+.text-bg-warning {
+    color: var(--ink) !important;
+    background-color: var(--paper) !important;
+    border: 1px solid var(--ink);
+}
+
+.text-bg-danger,
+.text-bg-info {
+    color: var(--ink) !important;
+    background-color: var(--paper-2) !important;
+}
+
+.text-bg-light {
+    color: var(--ink) !important;
+    background-color: var(--paper) !important;
+}
+
+/* -------------------------------------------------------------------------
+   7. Alerts (role="alert" markup unchanged)
+   ------------------------------------------------------------------------- */
+.alert-success,
+.alert-danger,
+.alert-warning,
+.alert-info {
+    border-left: 3px solid var(--ink);
+}
+
+.alert-link {
+    color: var(--ink);
+}
+
+/* -------------------------------------------------------------------------
+   8. Tables, lists, cards
+   ------------------------------------------------------------------------- */
+.table {
+    --bs-table-color: var(--ink);
+    --bs-table-bg: var(--bs-body-bg);
+    --bs-table-border-color: var(--line);
+    --bs-table-striped-color: var(--ink);
+    --bs-table-striped-bg: rgba(26, 26, 26, 0.03);
+    --bs-table-hover-color: var(--ink);
+    --bs-table-hover-bg: rgba(26, 26, 26, 0.04);
+}
+
+.table > thead th {
+    color: var(--ink-muted);
+}
+
+.list-group {
+    --bs-list-group-color: var(--ink);
+    --bs-list-group-border-color: var(--line);
+    --bs-list-group-action-hover-color: var(--ink);
+    --bs-list-group-action-hover-bg: var(--paper);
+    --bs-list-group-active-color: #ffffff;
+    --bs-list-group-active-bg: var(--ink);
+    --bs-list-group-active-border-color: var(--ink);
+}
+
+.card {
+    --bs-card-border-color: var(--line);
+}
+
+/* -------------------------------------------------------------------------
+   9. Dropdowns, nav, navbar
+   ------------------------------------------------------------------------- */
+.dropdown-menu {
+    --bs-dropdown-color: var(--ink);
+    --bs-dropdown-bg: var(--bs-body-bg);
+    --bs-dropdown-border-color: var(--line);
+    --bs-dropdown-divider-bg: var(--line);
+    --bs-dropdown-link-color: var(--ink);
+    --bs-dropdown-link-hover-color: var(--ink);
+    --bs-dropdown-link-hover-bg: var(--paper);
+    --bs-dropdown-link-active-color: #ffffff;
+    --bs-dropdown-link-active-bg: var(--ink);
+    --bs-dropdown-link-disabled-color: var(--ink-disabled);
+    --bs-dropdown-header-color: var(--ink-muted);
+}
+
+.dropdown-item.active,
+.dropdown-item:active {
+    color: #ffffff;
+    background-color: var(--ink);
+}
+
+.nav-link:focus-visible {
+    box-shadow: 0 0 0 0.25rem rgba(26, 26, 26, 0.15);
+}
+
+.navbar-toggler {
+    color: var(--ink);
+    border-color: var(--line);
+}
+
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 0.25rem rgba(26, 26, 26, 0.15);
+}
+
+/* -------------------------------------------------------------------------
+   10. Blazor fallback UI (error bar, reconnect dialog)
+   ------------------------------------------------------------------------- */
+#blazor-error-ui[data-nosnippet] {
+    background: var(--paper);
+    color: var(--ink);
+    border-top: 1px solid var(--line);
+}
+
+#blazor-error-ui[data-nosnippet] a {
+    color: var(--ink);
+}
+
+.blazor-error-boundary {
+    background-image: none;
+    background-color: var(--paper);
+    color: var(--ink);
+}
+
+#components-reconnect-modal[data-nosnippet] {
+    background-color: var(--bs-body-bg);
+    color: var(--ink);
+}
+
+#components-reconnect-modal[data-nosnippet]::backdrop {
+    background-color: rgba(0, 0, 0, 0.45);
+}
+
+#components-reconnect-modal[data-nosnippet] .components-reconnect-container button {
+    background-color: var(--ink);
+    color: var(--on-ink);
+}
+
+#components-reconnect-modal[data-nosnippet] .components-reconnect-container button:hover {
+    background-color: var(--ink-hover);
+}
+
+#components-reconnect-modal[data-nosnippet] .components-reconnect-container button:active {
+    background-color: var(--ink);
+}
+
+#components-reconnect-modal[data-nosnippet] .components-reconnect-container button:focus-visible {
+    outline: 2px solid var(--line-strong);
+    outline-offset: 2px;
+}
+
+#components-reconnect-modal[data-nosnippet] .components-rejoining-animation div {
+    border-color: var(--ink);
+}

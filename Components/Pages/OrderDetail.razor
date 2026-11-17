@@ -1,0 +1,116 @@
+@page "/orders/{Id:int}"
+@using System.Security.Claims
+@using blazor_app.Interfaces
+@using blazor_app.Models
+@using blazor_app.Utils
+@inject IOrderService OrderService
+@inject IHttpContextAccessor HttpContextAccessor
+
+<PageTitle>Chi tiết đơn hàng</PageTitle>
+
+<div class="container py-4">
+  <div class="mx-auto" style="max-width: 880px;">
+    <a class="small text-secondary text-decoration-none d-inline-flex align-items-center gap-2 mb-2" href="/orders">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      <span>Lịch sử mua hàng</span>
+    </a>
+
+    <h1 class="fs-3 fw-bold mb-3">Chi tiết đơn hàng</h1>
+
+    @if (!IsAuthenticated)
+    {
+      <div class="d-flex flex-column align-items-center justify-content-center gap-3 py-5 text-center">
+        <i class="fa-solid fa-receipt display-1 text-secondary opacity-50" aria-hidden="true"></i>
+        <p class="mb-0 text-secondary">Bạn cần đăng nhập để xem lịch sử mua hàng.</p>
+        <a class="btn btn-primary" href="/login">Đăng nhập</a>
+      </div>
+    }
+    else if (Order is null)
+    {
+      <div class="d-flex flex-column align-items-center justify-content-center gap-3 py-5 text-center">
+        <i class="fa-solid fa-receipt display-1 text-secondary opacity-50" aria-hidden="true"></i>
+        <p class="mb-0">Không tìm thấy đơn hàng.</p>
+        <a class="btn btn-primary" href="/orders">Xem lịch sử mua hàng</a>
+      </div>
+    }
+    else
+    {
+      <article class="card">
+        <div class="card-header bg-transparent d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <h2 class="fs-6 fw-bold mb-0">Thông tin đơn hàng</h2>
+          <span class="badge @OrderDisplay.StatusClass(Order.Status)">@OrderDisplay.StatusLabel(Order.Status)</span>
+        </div>
+
+        <div class="card-body">
+          <dl class="row gy-2 mb-4 small">
+            <dt class="col-12 col-sm-4 col-lg-3 fw-normal text-secondary mb-0">Mã đơn</dt>
+            <dd class="col-12 col-sm-8 col-lg-9 mb-0">#@Order.Id</dd>
+
+            <dt class="col-12 col-sm-4 col-lg-3 fw-normal text-secondary mb-0">Ngày đặt</dt>
+            <dd class="col-12 col-sm-8 col-lg-9 mb-0">@DateFormatter.Format(Order.CreatedAt)</dd>
+
+            <dt class="col-12 col-sm-4 col-lg-3 fw-normal text-secondary mb-0">Địa chỉ</dt>
+            <dd class="col-12 col-sm-8 col-lg-9 mb-0 text-break">@Order.Address</dd>
+
+            <dt class="col-12 col-sm-4 col-lg-3 fw-normal text-secondary mb-0">Phương thức thanh toán</dt>
+            <dd class="col-12 col-sm-8 col-lg-9 mb-0">@OrderDisplay.PayMethodLabel(Order.PayMethod)</dd>
+
+            <dt class="col-12 col-sm-4 col-lg-3 fw-normal text-secondary mb-0">Tổng tiền</dt>
+            <dd class="col-12 col-sm-8 col-lg-9 mb-0 fw-bold">@PriceFormatter.Format(Order.Total)</dd>
+          </dl>
+
+          <h2 class="fs-6 fw-semibold text-secondary mb-2">Sản phẩm</h2>
+
+          <ul class="list-group list-group-flush">
+            @foreach (var item in Order.Items)
+            {
+              <li class="list-group-item d-flex align-items-center gap-3 px-0 py-3">
+                @if (ImageUrlHelper.ForFirst(item.Product.Images) is string imageUrl)
+                {
+                  <img class="rounded object-fit-cover bg-body-secondary flex-shrink-0" src="@imageUrl"
+                       alt="@item.Product.Name" loading="lazy" width="56" height="56" />
+                }
+                else
+                {
+                  <div class="rounded bg-body-secondary flex-shrink-0 d-flex align-items-center justify-content-center text-secondary"
+                       style="width: 56px; height: 56px;" aria-hidden="true">
+                    <i class="fa-solid fa-shirt"></i>
+                  </div>
+                }
+
+                <div class="flex-grow-1">
+                  <p class="fw-semibold mb-0">@item.Product.Name</p>
+                  <p class="small text-secondary mb-0">Size @item.Size · Số lượng: @item.Quantity · Đơn giá: @PriceFormatter.Format(item.Price)</p>
+                </div>
+
+                <span class="fw-bold text-nowrap">@PriceFormatter.Format(item.Price * item.Quantity)</span>
+              </li>
+            }
+          </ul>
+        </div>
+      </article>
+    }
+  </div>
+</div>
+
+@code {
+  [Parameter]
+  public int Id { get; set; }
+
+  private Order? Order { get; set; }
+
+  private ClaimsPrincipal? Principal => HttpContextAccessor.HttpContext?.User;
+
+  private bool IsAuthenticated => Principal?.Identity?.IsAuthenticated == true;
+
+  private int? UserId =>
+      int.TryParse(Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : null;
+
+  protected override async Task OnInitializedAsync()
+  {
+    if (UserId is int userId)
+    {
+      Order = await OrderService.GetByIdAsync(Id, userId);
+    }
+  }
+}
