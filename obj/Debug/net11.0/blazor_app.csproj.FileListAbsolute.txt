@@ -192,3 +192,4 @@
 /home/nhatpon/projects/study/dotnet/blazor_app/obj/Debug/net11.0/compressed/dn937ijxme-{0}-ucxmy7x584-ucxmy7x584.gz
 /home/nhatpon/projects/study/dotnet/blazor_app/obj/Debug/net11.0/compressed/m0in2u6pyd-{0}-ucxmy7x584-ucxmy7x584.gz
 /home/nhatpon/projects/study/dotnet/blazor_app/obj/Debug/net11.0/compressed/2ow7z93lhe-{0}-1a28oploz9-1a28oploz9.gz
+/home/nhatpon/projects/study/dotnet/blazor_app/obj/Debug/net11.0/blazor_app.sourcelink.json

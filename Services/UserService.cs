@@ -67,4 +67,32 @@ public class UserService : IUserService
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == id, ct);
     }
+
+    public async Task<bool> UpdateProfileAsync(int userId, string name, string address, PayMethod payMethod, CancellationToken ct = default)
+    {
+        name = name?.Trim() ?? string.Empty;
+        address = address?.Trim() ?? string.Empty;
+
+        if (name.Length == 0 || address.Length == 0)
+        {
+            return false;
+        }
+
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
+
+        if (user is null)
+        {
+            return false;
+        }
+
+        user.Name = name;
+        user.Address = address;
+        user.PayMethod = payMethod;
+
+        await db.SaveChangesAsync(ct);
+
+        return true;
+    }
 }

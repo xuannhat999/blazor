@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "mctIzGB1dYM=",
+  "dgSpecHash": "91OOG7XBXiE=",
   "success": true,
   "projectFilePath": "/home/nhatpon/projects/study/dotnet/blazor_app/blazor_app.csproj",
   "expectedPackageFiles": [
@@ -20,10 +20,7 @@
     "/home/nhatpon/.nuget/packages/microsoft.entityframeworkcore.analyzers/9.0.9/microsoft.entityframeworkcore.analyzers.9.0.9.nupkg.sha512",
     "/home/nhatpon/.nuget/packages/microsoft.entityframeworkcore.design/9.0.9/microsoft.entityframeworkcore.design.9.0.9.nupkg.sha512",
     "/home/nhatpon/.nuget/packages/microsoft.entityframeworkcore.relational/9.0.9/microsoft.entityframeworkcore.relational.9.0.9.nupkg.sha512",
-    "/home/nhatpon/.nuget/packages/microsoft.extensions.caching.memory/9.0.9/microsoft.extensions.caching.memory.9.0.9.nupkg.sha512",
-    "/home/nhatpon/.nuget/packages/microsoft.extensions.dependencyinjection/9.0.9/microsoft.extensions.dependencyinjection.9.0.9.nupkg.sha512",
     "/home/nhatpon/.nuget/packages/microsoft.extensions.dependencymodel/9.0.9/microsoft.extensions.dependencymodel.9.0.9.nupkg.sha512",
-    "/home/nhatpon/.nuget/packages/microsoft.extensions.logging/9.0.9/microsoft.extensions.logging.9.0.9.nupkg.sha512",
     "/home/nhatpon/.nuget/packages/mono.texttemplating/3.0.0/mono.texttemplating.3.0.0.nupkg.sha512",
     "/home/nhatpon/.nuget/packages/mysqlconnector/2.4.0/mysqlconnector.2.4.0.nupkg.sha512",
     "/home/nhatpon/.nuget/packages/pomelo.entityframeworkcore.mysql/9.0.0/pomelo.entityframeworkcore.mysql.9.0.0.nupkg.sha512",
@@ -33,8 +30,7 @@
     "/home/nhatpon/.nuget/packages/system.composition.convention/7.0.0/system.composition.convention.7.0.0.nupkg.sha512",
     "/home/nhatpon/.nuget/packages/system.composition.hosting/7.0.0/system.composition.hosting.7.0.0.nupkg.sha512",
     "/home/nhatpon/.nuget/packages/system.composition.runtime/7.0.0/system.composition.runtime.7.0.0.nupkg.sha512",
-    "/home/nhatpon/.nuget/packages/system.composition.typedparts/7.0.0/system.composition.typedparts.7.0.0.nupkg.sha512",
-    "/home/nhatpon/.nuget/packages/microsoft.aspnetcore.app.ref/11.0.0/microsoft.aspnetcore.app.ref.11.0.0.nupkg.sha512"
+    "/home/nhatpon/.nuget/packages/system.composition.typedparts/7.0.0/system.composition.typedparts.7.0.0.nupkg.sha512"
   ],
   "logs": [
     {

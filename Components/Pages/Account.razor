@@ -1,8 +1,192 @@
 @page "/account"
+@using System.Security.Claims
+@using blazor_app.Interfaces
+@using blazor_app.Models
+@using blazor_app.Utils
+@inject IUserService UserService
+@inject IOrderService OrderService
+@inject ICartService CartService
+@inject IHttpContextAccessor HttpContextAccessor
 
 <PageTitle>Tài khoản</PageTitle>
 
 <div class="container py-4">
-    <h1 class="fs-4">Tài khoản</h1>
-    <p class="text-secondary mb-0">Trang đang được xây dựng.</p>
+  @if (!IsAuthenticated)
+  {
+    <div class="d-flex flex-column align-items-center justify-content-center gap-3 py-5 text-center">
+      <i class="fa-solid fa-user display-1 text-secondary opacity-50" aria-hidden="true"></i>
+      <p class="mb-0 text-secondary">Bạn cần đăng nhập để xem thông tin tài khoản.</p>
+      <a class="btn btn-primary" href="/login">Đăng nhập</a>
+    </div>
+  }
+  else if (Profile is null)
+  {
+    <div class="d-flex flex-column align-items-center justify-content-center gap-3 py-5 text-center">
+      <i class="fa-solid fa-user display-1 text-secondary opacity-50" aria-hidden="true"></i>
+      <p class="mb-0">Không tìm thấy thông tin tài khoản.</p>
+      <a class="btn btn-primary" href="/">Về trang chủ</a>
+    </div>
+  }
+  else
+  {
+    <div class="mx-auto" style="max-width: 960px;">
+      <div class="d-flex align-items-baseline justify-content-between gap-3 flex-wrap mb-3">
+        <h1 class="fs-3 fw-bold mb-0">Tài khoản</h1>
+        <span class="badge text-bg-secondary">@UserDisplay.RoleLabel(Profile.Role)</span>
+      </div>
+
+      @if (Updated == 1)
+      {
+        <div class="alert alert-success" role="alert">
+          Cập nhật thông tin thành công.
+        </div>
+      }
+      else if (Error == "missing")
+      {
+        <div class="alert alert-danger" role="alert">
+          Vui lòng nhập đầy đủ thông tin.
+        </div>
+      }
+
+      <div class="row g-4">
+        <div class="col-12 col-lg-7">
+          <article class="card">
+            <div class="card-header bg-transparent">
+              <h2 class="fs-6 fw-bold mb-0">Thông tin cá nhân</h2>
+            </div>
+            <div class="card-body">
+              <dl class="row gy-2 mb-0 small">
+                <dt class="col-12 col-sm-5 fw-normal text-secondary mb-0">Họ tên</dt>
+                <dd class="col-12 col-sm-7 mb-0">@Profile.Name</dd>
+
+                <dt class="col-12 col-sm-5 fw-normal text-secondary mb-0">Email</dt>
+                <dd class="col-12 col-sm-7 mb-0 text-break">@Profile.Email</dd>
+
+                <dt class="col-12 col-sm-5 fw-normal text-secondary mb-0">Địa chỉ</dt>
+                <dd class="col-12 col-sm-7 mb-0 text-break">@Profile.Address</dd>
+
+                <dt class="col-12 col-sm-5 fw-normal text-secondary mb-0">Phương thức thanh toán</dt>
+                <dd class="col-12 col-sm-7 mb-0">@OrderDisplay.PayMethodLabel(PayMethodCode(Profile.PayMethod))</dd>
+              </dl>
+            </div>
+          </article>
+
+          <article class="card mt-4">
+            <div class="card-header bg-transparent">
+              <h2 class="fs-6 fw-bold mb-0">Cập nhật thông tin</h2>
+            </div>
+            <div class="card-body">
+              <form method="post" action="/account/update" class="d-flex flex-column gap-3">
+                <div>
+                  <label class="form-label" for="name">Họ tên</label>
+                  <input type="text" id="name" name="name" class="form-control" value="@Profile.Name" required />
+                </div>
+
+                <div>
+                  <label class="form-label" for="email">Email</label>
+                  <input type="email" id="email" class="form-control" value="@Profile.Email" disabled />
+                  <div class="form-text">Email dùng để đăng nhập và không thể thay đổi.</div>
+                </div>
+
+                <div>
+                  <label class="form-label" for="address">Địa chỉ</label>
+                  <input type="text" id="address" name="address" class="form-control" value="@Profile.Address" required />
+                </div>
+
+                <div>
+                  <label class="form-label" for="payMethod">Phương thức thanh toán</label>
+                  <select id="payMethod" name="payMethod" class="form-select">
+                    <option value="cash" selected="@(Profile.PayMethod == PayMethod.Cash)">Tiền mặt</option>
+                    <option value="online" selected="@(Profile.PayMethod == PayMethod.Online)">Trực tuyến</option>
+                  </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary align-self-start">Lưu thay đổi</button>
+              </form>
+            </div>
+          </article>
+        </div>
+
+        <div class="col-12 col-lg-5">
+          <article class="card">
+            <div class="card-header bg-transparent">
+              <h2 class="fs-6 fw-bold mb-0">Tóm tắt</h2>
+            </div>
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item d-flex align-items-center justify-content-between gap-3">
+                <span class="d-inline-flex align-items-center gap-2">
+                  <i class="fa-solid fa-receipt text-secondary" aria-hidden="true"></i>
+                  <span>Đơn hàng</span>
+                </span>
+                <span class="fw-bold">@OrderCount</span>
+              </li>
+              <li class="list-group-item d-flex align-items-center justify-content-between gap-3">
+                <span class="d-inline-flex align-items-center gap-2">
+                  <i class="fa-solid fa-cart-shopping text-secondary" aria-hidden="true"></i>
+                  <span>Sản phẩm trong giỏ</span>
+                </span>
+                <span class="fw-bold">@CartQuantity</span>
+              </li>
+            </ul>
+            <div class="card-footer bg-transparent d-flex flex-column gap-2">
+              <a class="btn btn-outline-secondary w-100" href="/orders">Lịch sử mua hàng</a>
+              <a class="btn btn-outline-secondary w-100" href="/cart">Giỏ hàng</a>
+            </div>
+          </article>
+
+          <form method="post" action="/auth/logout" class="mt-3">
+            <button type="submit" class="btn btn-outline-secondary w-100">Đăng xuất</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  }
 </div>
+
+@code {
+  [SupplyParameterFromQuery(Name = "updated")]
+  public int? Updated { get; set; }
+
+  [SupplyParameterFromQuery(Name = "error")]
+  public string? Error { get; set; }
+
+  private User? Profile { get; set; }
+
+  private int OrderCount { get; set; }
+
+  private int CartQuantity { get; set; }
+
+  private ClaimsPrincipal? Principal => HttpContextAccessor.HttpContext?.User;
+
+  private bool IsAuthenticated => Principal?.Identity?.IsAuthenticated == true;
+
+  private int? UserId =>
+      int.TryParse(Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : null;
+
+  private static string PayMethodCode(PayMethod payMethod) => payMethod switch
+  {
+    PayMethod.Online => "online",
+    _ => "cash"
+  };
+
+  protected override async Task OnInitializedAsync()
+  {
+    if (UserId is not int userId)
+    {
+      return;
+    }
+
+    Profile = await UserService.GetByIdAsync(userId);
+
+    if (Profile is null)
+    {
+      return;
+    }
+
+    var orders = await OrderService.GetByUserIdAsync(userId);
+    var cartItems = await CartService.GetByUserIdAsync(userId);
+
+    OrderCount = orders.Count;
+    CartQuantity = cartItems.Sum(item => item.Quantity);
+  }
+}

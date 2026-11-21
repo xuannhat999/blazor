@@ -61,6 +61,7 @@ wwwroot/js/cart.js         Cart select-all checkbox behavior
 | POST | `/auth/login`, `/auth/register`, `/auth/logout` | `AuthController` |
 | POST | `/cart/add` | `CartController` |
 | POST | `/orders/create` | `OrdersController` |
+| POST | `/account/update` | `AccountController` |
 
 ## Rules
 
@@ -81,7 +82,8 @@ wwwroot/js/cart.js         Cart select-all checkbox behavior
 6. **Formatting helpers are shared.** Use `Utils/PriceFormatter` (vi-VN `N0` + `₫`),
    `Utils/DateFormatter` (`dd/MM/yyyy HH:mm`), `Utils/ImageUrlHelper` (leading `/`,
    SortOrder first image), `Utils/OrderDisplay` (status label/badge class, pay-method
-   label), `Utils/ProductDisplay.DiscountPercent`. Never re-add local copies in pages.
+   label), `Utils/ProductDisplay.DiscountPercent`, `Utils/UserDisplay.RoleLabel`.
+   Never re-add local copies in pages.
 7. **Search filtering is server-side** in `IProductService.SearchAsync`
    (`ProductSearchCriteria` → `ProductSearchResult`, page size 25, page clamped).
    Filter values are lookup `Code` except `season` = `Season.Name`; OR within a group,
